@@ -1,0 +1,226 @@
+package analisis;
+
+import java_cup.runtime.*;
+import java.util.*;
+import gameworld.*;
+import gameworld.actors.*;
+import java.awt.Point;
+//import gameworld.actorTMPs.*;
+action code {:
+	//Codigo de la clase privada
+:}
+init with {:
+	
+:}
+
+parser code {:
+	private Box actorTMP;
+	public Stage escenario;
+	public TablaSimbolos tablasimbolos;
+        public LinkedList<XError> lista;
+        public void setStage(Stage escenario){
+		this.escenario = escenario;
+	}
+        public void setTablaSimbolos(TablaSimbolos tablasimbolos){
+            this.tablasimbolos = tablasimbolos;
+        }
+	private final String tipo = "Escenario:Sintactico";
+	/**Metodo al que se llama automaticamente ante algun error sintactico.*/
+	@Override
+	public void syntax_error(Symbol s){
+		lista.add(new XError(s.right+1,s.left,"Error sintactico Identificador " + s.value + " no reconocido.", (String)s.value, tipo ));
+	}
+	/**Metodo al que se llama en el momento en que ya no es posible una recuperacion de errores.*/
+	@Override
+	public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{
+		lista.add(new XError(s.right+1,s.left,"Error sintactico Identificador " +s.value + " no reconocido.", (String)s.value, tipo));
+	}
+:}
+terminal eti_abre_escenarios,eti_abre_personajes,eti_abre_heroes,eti_abre_villanos,eti_abre_paredes,eti_abre_extras,eti_abre_armas,eti_abre_bonus,eti_abre_meta;
+terminal background; 
+terminal eti_cierre_escenarios,eti_cierre_personajes,eti_cierre_heroes,eti_cierre_villanos,eti_cierre_paredes,eti_cierre_extras,eti_cierre_armas,eti_cierre_bonus,eti_cierre_meta;
+terminal String identificador,entero;
+terminal igual,comma,punto_comma,dos_puntos,paren_abre,paren_cierre,mayor_que;
+non terminal inicio,FIRST,SECOND;
+non terminal PERSONAJES,HEROES,VILLANOS;
+non terminal ArrayList<Point> PAREJA_COORDENADA;
+non terminal int[] COORDENADA;
+non terminal EXTRAS,ARMAS,BONUS,PAREDES;
+non terminal META;
+non terminal PERSONAJES_LIST,VILLANOS_LIST,PAREDES_LIST,EXTRAS_LIST,ARMAS_LIST,BONUS_LIST;
+start with inicio;
+inicio::= eti_abre_escenarios background igual identificador:e1 punto_comma mayor_que FIRST eti_cierre_escenarios
+		{:
+			Box bk = parser.tablasimbolos.get(e1);
+			if (bk != null){
+				if (bk instanceof Background){
+					bk.setStage(parser.escenario);
+					Box b = bk.clone();
+					parser.escenario.setBackground((Background)b);
+					bk.setStage(null);
+				}
+			}
+		:}
+	| eti_abre_escenarios FIRST eti_cierre_escenarios
+		{:
+			
+		:}
+	;
+FIRST::= FIRST SECOND
+	| SECOND
+	;
+SECOND::= eti_abre_personajes PERSONAJES eti_cierre_personajes
+	| eti_abre_paredes PAREDES eti_cierre_paredes
+	| eti_abre_extras EXTRAS eti_cierre_extras
+	| eti_abre_meta META eti_cierre_meta
+	;
+PERSONAJES::= PERSONAJES PERSONAJES_LIST
+	| PERSONAJES_LIST
+	;
+PERSONAJES_LIST::= eti_abre_heroes HEROES eti_cierre_heroes
+	| eti_abre_villanos VILLANOS eti_cierre_villanos
+	;
+HEROES::= identificador:e1 paren_abre entero:e2 comma entero:e3 paren_cierre punto_comma
+		{:
+			Box bh = parser.tablasimbolos.get(e1);
+			if (bh != null && bh instanceof Heroe){
+				bh.setStage(parser.escenario);
+				Box b = bh.clone();
+				b.setCoordenate(Integer.parseInt(e2),Integer.parseInt(e3));
+				parser.escenario.setHeroe((Heroe)b);
+				bh.setStage(null);
+			} else {
+				//error, es nulo o no es heroe
+			}
+		:}
+	| error
+	;
+VILLANOS::= VILLANOS VILLANOS_LIST
+	| VILLANOS_LIST
+	;
+VILLANOS_LIST::=identificador:e1 paren_abre entero:e2 comma entero:e3 paren_cierre punto_comma
+		{:
+			Box bv = parser.tablasimbolos.get(e1);
+			if (bv != null && bv instanceof Villano){
+				bv.setStage(parser.escenario);
+				Box b = bv.clone();
+				b.setCoordenate(Integer.parseInt(e2),Integer.parseInt(e3));
+				parser.escenario.addVillano((Villano)b);
+				bv.setStage(null);
+			} else {
+				//error, es nulo o no es heroe
+			}
+		:}
+	| error
+	;
+PAREDES::= PAREDES PAREDES_LIST
+	| PAREDES_LIST
+	;
+PAREDES_LIST::= identificador:e1 paren_abre PAREJA_COORDENADA:e2 paren_cierre punto_comma
+		{:
+
+			Box bloqueOriginal = parser.tablasimbolos.get(e1);
+			if (bloqueOriginal != null && bloqueOriginal instanceof Bloque){
+				bloqueOriginal.setStage(parser.escenario);
+				for(Point p: e2){
+					Bloque b = (Bloque)bloqueOriginal.clone();
+					b.setCoordenate(p.x, p.y);
+					parser.escenario.addMuro(b);
+				}				
+				bloqueOriginal.setStage(null);
+			}
+
+		:}
+	| error
+	;
+PAREJA_COORDENADA::= COORDENADA:e1 comma COORDENADA:e2
+		{:
+
+			int maxi = e1.length, maxj = e2.length;
+			ArrayList<Point> points = new ArrayList<>(maxi * maxj);
+			for (int i = 0; i < maxi; i++){
+
+				for(int j = 0; j < maxj; j++) {
+
+					points.add(new Point(e1[i], e2[j]));
+					
+				}
+			}
+			RESULT=points;
+		:}
+	;
+COORDENADA::= entero:e1 dos_puntos entero:e2
+		{:
+			int limit1 = Integer.parseInt(e1), limit2 = Integer.parseInt(e2);
+			int max = limit2 - limit1 + 1;
+			int[] retornable = new int[max];
+			for(int i = 0; i < max; i++) {
+				retornable[i] = limit1 + i;
+			}
+			RESULT=retornable;
+		:}
+	| entero:e1
+		{:
+			RESULT=new int[]{Integer.parseInt(e1)};
+		:}
+	;
+EXTRAS::= EXTRAS EXTRAS_LIST
+	| EXTRAS_LIST
+		;
+EXTRAS_LIST::= eti_abre_armas ARMAS eti_cierre_armas
+	| eti_abre_bonus BONUS eti_cierre_bonus
+	;
+ARMAS::= ARMAS ARMAS_LIST
+	| ARMAS_LIST
+	;
+ARMAS_LIST::= identificador:e1 paren_abre entero:e2 comma entero:e3 paren_cierre punto_comma
+		{:
+			Box armaOriginal = parser.tablasimbolos.get(e1);
+			if (armaOriginal != null){
+				if (armaOriginal instanceof Arma || armaOriginal instanceof Bomba){
+					armaOriginal.setStage(parser.escenario);
+					Box b = armaOriginal.clone();
+					b.setCoordenate(Integer.parseInt(e2), Integer.parseInt(e3));
+					armaOriginal.setStage(null);
+					if (b instanceof Arma)
+						parser.escenario.addArma((Arma)b);
+					else
+						parser.escenario.addBomba((Bomba)b);
+				}
+			}
+		:}
+	| error
+	;
+BONUS::= BONUS BONUS_LIST
+	| BONUS_LIST
+	;
+BONUS_LIST::= identificador:e1 paren_abre entero:e2 comma entero:e3 paren_cierre punto_comma
+		{:
+			Box bonusOriginal = parser.tablasimbolos.get(e1);
+			if (bonusOriginal != null){
+				if (bonusOriginal instanceof Bonus){
+					bonusOriginal.setStage(parser.escenario);
+					Box b = bonusOriginal.clone();
+					b.setCoordenate(Integer.parseInt(e2), Integer.parseInt(e3));
+					bonusOriginal.setStage(null);
+					parser.escenario.addBonus((Bonus)b);
+				}
+			}
+		:}
+	| error
+	;
+META::= identificador:e1 paren_abre entero:e2 comma entero:e3 paren_cierre punto_comma
+		{:
+			Box metaOriginal = parser.tablasimbolos.get(e1);
+			if (metaOriginal != null){
+				if (metaOriginal instanceof Meta){
+					metaOriginal.setStage(parser.escenario);
+					Box b = metaOriginal.clone();
+					b.setCoordenate(Integer.parseInt(e2), Integer.parseInt(e3));
+					metaOriginal.setStage(null);
+					parser.escenario.setMeta((Meta)b);
+				}
+			}
+		:}
+	| error
+	;

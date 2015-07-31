@@ -1,0 +1,90 @@
+<escenarios background=Fondo_3;>
+<personajes>
+<heroes>
+	Caballero(14,17);
+</heroes>
+<villanos>
+	soldado(11,4);
+	soldado(15,1);
+	soldado(11,17);
+	soldado(15,6);
+	soldado(5,3);
+</villanos>
+</personajes>
+<paredes>
+	suelo2(12,5);
+	suelo2(12,8);
+	suelo2(12,7);
+	suelo2(12,6);
+	suelo2(12,4);
+	suelo2(12,3);
+	suelo2(12,10);
+	suelo2(14,6);
+	suelo2(14,7);
+	suelo2(14,5);
+	suelo2(13,5);
+	suelo2(13,6);
+	suelo2(13,7);
+	suelo2(14,4);
+	suelo2(13,4);
+	suelo1(16,9);
+	suelo1(16,6);
+	suelo1(16,7);
+	suelo1(16,8);
+	suelo1(16,5);
+	suelo1(16,3);
+	suelo1(16,4);
+	suelo1(16,2);
+	suelo1(16,1);
+	suelo1(14,2);
+	suelo2(16,11);
+	suelo2(16,12);
+	suelo2(16,13);
+	suelo2(16,16);
+	suelo2(16,18);
+	suelo2(16,17);
+	suelo2(15,14);
+	suelo1(12,12);
+	suelo1(12,13);
+	suelo1(11,13);
+	suelo1(10,14);
+	suelo1(10,15);
+	suelo1(9,15);
+	suelo1(8,16);
+	suelo1(7,17);
+	suelo1(6,17);
+	suelo1(5,15);
+	suelo1(7,10);
+	suelo1(7,9);
+	suelo2(8,7);
+	suelo2(7,6);
+	suelo2(9,5);
+	suelo2(6,5);
+	suelo2(6,3);
+	suelo2(6,4);
+	suelo2(6,2);
+	suelo1(6,0);
+	suelo1(8,1);
+	suelo1(9,2);
+	suelo1(12,18);
+	suelo1(12,17);
+	suelo2(12,15);
+	suelo2(12,16);
+</paredes>
+<extras>
+<armas>
+	arma1(8,4);
+	arma1(8,6);
+	arma1(6,10);
+	arma1(15,9);
+	bomba1(11,5);
+	bomba1(11,8);
+</armas>
+<bonus>
+	diamante1(11,10);
+</bonus>
+</extras>
+<meta>
+	Puerta_Fin(4,1);
+</meta>
+</escenario>

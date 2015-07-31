@@ -1,0 +1,3 @@
+src/analisis/Parser*.java*
+src/analisis/Scanner*.java*
+src/analisis/sym*.java*

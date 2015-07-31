@@ -1,0 +1,282 @@
+/**
+ * UNIVERSIDAD DE SAN CARLOS DE GUATEMALA
+ * FACULTAD DE INGENIERIA
+ * ESCUELA DE CIENCIAS Y SISTEMAS
+ * COMPILADORES 1
+ * PROYECTO 1
+ * Creado el 04 de septiembre 2011, 11:00AM
+ */
+package analisis;
+
+import java_cup.runtime.*;
+import gameworld.*;
+import java.util.*;
+action code {:
+	//codigo de la clase privada
+:}
+init with {:
+
+:}
+
+parser code {:
+	public Box actorTMP;
+	public TablaSimbolos tablasimbolos;
+        public LinkedList<XError> lista;
+        
+        public void setTablaSimbolos(TablaSimbolos tablasimbolos){
+            this.tablasimbolos = tablasimbolos;
+        }
+	public void agregarSimbolo(){
+		if (actorTMP != null)
+			if (actorTMP.getX_nombre() != null) {
+				Box input = actorTMP.clone();
+				if (!tablasimbolos.put( input)){
+					//malo
+				}
+			}
+		actorTMP = null;
+	}
+	private final String tipo = "Configuracion:Sintactico";
+	/**Metodo al que se llama automaticamente ante algun error sintactico.*/
+	@Override
+	public void syntax_error(Symbol s){
+		lista.add(new XError(s.right+1,s.left,"Error sintactico Identificador " + (String)s.value + " no reconocido.", (String)s.value , tipo));
+	}
+	/**Metodo al que se llama en el momento en que ya no es posible una recuperacion de errores.*/
+	@Override
+	public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{
+		lista.add(new XError(s.right+1,s.left,"Error sintactico Identificador " +(String)s.value + " no reconocido.", (String)s.value, tipo ));
+	}
+:}
+terminal eti_abre_configuration,eti_abre_background,eti_abre_figure,eti_abre_design;
+terminal eti_cierre_configuration,eti_cierre_background,eti_cierre_figure,eti_cierre_design;
+terminal String x_nombre,x_imagen,x_tipo,x_vida,x_heroe,x_villano,x_destruir,x_descripcion,x_meta,x_bloque,x_bonus,x_arma,x_uso,x_alcance,x_bomba,x_creditos,x_color,x_azul,x_verde,x_celeste,x_morado,x_negro,x_gris,x_cafe,x_azul_oscuro,x_verde_oscuro,x_blanco;
+terminal String literal,identificador,entero;
+terminal igual,comma,punto_comma,llave_abre,llave_cierre;
+
+non terminal inicio,FIRST,SECOND;
+non terminal BACKGROUND,FIGURE,DESIGN;
+non terminal BACKGROUNDBODY_LIST,FIGUREBODY_LIST,DESIGNBODY_LIST;
+non terminal BACKGROUNDBODY,FIGUREBODY,DESIGNBODY;
+non terminal TIPODESIGN,COLORDESIGN;
+start with inicio;
+inicio::= eti_abre_configuration FIRST eti_cierre_configuration
+	;
+FIRST::= FIRST SECOND
+	| SECOND
+	;
+SECOND::= eti_abre_background BACKGROUND eti_cierre_background
+	| eti_abre_figure FIGURE eti_cierre_figure
+	| eti_abre_design DESIGN eti_cierre_design
+	;
+BACKGROUND::= BACKGROUND comma llave_abre BACKGROUNDBODY_LIST llave_cierre
+		{:
+			GenericBox gb = (GenericBox)parser.actorTMP;
+			gb.setX_tipo("x-background");
+			parser.agregarSimbolo();
+		:}
+	| llave_abre BACKGROUNDBODY_LIST llave_cierre
+		{:
+			GenericBox gb = (GenericBox)parser.actorTMP;
+			gb.setX_tipo("x-background");
+			parser.agregarSimbolo();
+		:}
+	;
+BACKGROUNDBODY_LIST::= BACKGROUNDBODY_LIST BACKGROUNDBODY
+	| BACKGROUNDBODY
+	;
+BACKGROUNDBODY::= x_nombre igual identificador:e1 punto_comma
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_nombre(e1);
+		:}
+	| x_imagen igual literal:e1 punto_comma
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_imagen(e1);
+		:}
+	| error
+	;
+FIGURE::= FIGURE comma llave_abre FIGUREBODY_LIST llave_cierre 
+		{:
+			parser.agregarSimbolo();
+		:}
+	| llave_abre FIGUREBODY_LIST llave_cierre
+		{:
+			parser.agregarSimbolo();
+		:}
+	;
+FIGUREBODY_LIST::= FIGUREBODY_LIST FIGUREBODY
+	| FIGUREBODY
+	;
+FIGUREBODY::=x_nombre igual identificador:e1 punto_comma
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_nombre(e1);
+		:}
+	| x_imagen igual literal:e1 punto_comma
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_imagen(e1);
+		:}
+	| x_vida igual entero:e1 punto_comma
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_vida(Integer.parseInt(e1));
+		:}
+	| x_tipo igual x_heroe:e1 punto_comma
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			GenericBox gb = (GenericBox)parser.actorTMP;
+			gb.setX_tipo(e1);
+		:}
+	| x_tipo igual x_villano:e1 punto_comma
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			GenericBox gb = (GenericBox)parser.actorTMP;
+			gb.setX_tipo(e1);
+		:}
+	| x_destruir igual entero:e1 punto_comma
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_destruir(Integer.parseInt(e1));
+		:}
+	| x_descripcion igual literal:e1 punto_comma
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_descripcion(e1);
+		:}
+	| error
+	;
+DESIGN::= DESIGN comma llave_abre DESIGNBODY_LIST llave_cierre 
+		{:
+			parser.agregarSimbolo();
+		:}
+	| llave_abre DESIGNBODY_LIST llave_cierre
+		{:
+			parser.agregarSimbolo();
+		:}
+	;
+DESIGNBODY_LIST::= DESIGNBODY_LIST DESIGNBODY
+		| DESIGNBODY
+		;
+DESIGNBODY::= x_nombre igual identificador:e1 punto_comma
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_nombre(e1);
+		:}
+	| x_imagen igual literal:e1 punto_comma
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_imagen(e1);
+		:}
+	| x_tipo igual TIPODESIGN punto_comma
+		{:
+		:}
+	| x_destruir igual entero:e1 punto_comma
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_destruir(Integer.parseInt(e1));
+		:}
+	| x_uso igual entero:e1 punto_comma
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_uso(Integer.parseInt(e1));
+		:}
+	| x_alcance igual entero:e1 punto_comma
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_alcance(Integer.parseInt(e1));
+		:}
+	| x_creditos igual entero:e1 punto_comma
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_creditos(Integer.parseInt(e1));
+		:}
+	| x_color igual COLORDESIGN punto_comma
+	| error
+	;
+
+TIPODESIGN::= x_meta:e1
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			GenericBox gb = (GenericBox) parser.actorTMP;
+			gb.setX_tipo(e1);
+		:}
+	| x_bloque:e1
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			GenericBox gb = (GenericBox) parser.actorTMP;
+			gb.setX_tipo(e1);
+		:}
+	| x_bonus:e1
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			GenericBox gb = (GenericBox) parser.actorTMP;
+			gb.setX_tipo(e1);
+		:}
+	| x_bomba:e1
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			GenericBox gb = (GenericBox) parser.actorTMP;
+			gb.setX_tipo(e1);
+		:}
+	| x_arma:e1
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			GenericBox gb = (GenericBox) parser.actorTMP;
+			gb.setX_tipo(e1);
+		:}
+	;
+
+COLORDESIGN::=x_azul
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_color(XColor.XAzul);
+		:}
+	| x_verde
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_color(XColor.XVerde);
+		:}
+	| x_celeste
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_color(XColor.XCeleste);
+		:}
+	| x_morado
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_color(XColor.XMorado);
+		:}
+	| x_negro
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_color(XColor.XNegro);
+		:}
+	| x_gris
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_color(XColor.XGris);
+		:}
+	| x_cafe
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_color(XColor.XCafe);
+		:}
+	| x_azul_oscuro
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_color(XColor.XAzulOscuro);
+		:}
+	| x_verde_oscuro
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_color(XColor.XVerdeOscuro);
+		:}
+	| x_blanco
+		{:
+			if (parser.actorTMP == null){parser.actorTMP = new GenericBox();}
+			parser.actorTMP.setX_color(XColor.XBlanco);
+		:}
+	;
